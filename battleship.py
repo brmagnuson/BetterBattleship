@@ -1,17 +1,17 @@
 # This program lets a user play Battleship against the computer. The computer either plays randomly or intelligently.
 
+from __future__ import print_function
 import random
 import sys
-import pysynth
 import play_wav
-from __future__ import print_function
+import os
 
 
 def getInt(prompt):
     """This function gets an integer from the user."""
     while True:
         try:
-            number = int(input(prompt).strip())
+            number = int(input(prompt))
             return number
         except ValueError:
             pass
@@ -134,8 +134,8 @@ def getAIShipCoordinates(aiShips, maximumColumnIndex, maximumRowIndex):
         # Add valid ship to coordinates list and ship dictionary and announce placement
         aiShipCoordsList += currentAIShipCords
         aiShipDict[aiShipSymbol] = currentAIShipCords
-        print('Placing ship from %d,%d to %d,%d.' % (currentAIShipCords[0][0], currentAIShipCords[0][1],
-                                                     currentAIShipCords[-1][0], currentAIShipCords[-1][1]))
+
+    print('AI ships placed.')
 
     return aiShipDict
 
@@ -231,7 +231,7 @@ def getUserMove(previousUserMoves, maximumColumnIndex, maximumRowIndex):
     invalid = True
     while invalid:
 
-        userInput = input('Enter row and column to fire on separated by a space: ').strip()
+        userInput = raw_input('Enter row and column to fire on separated by a space: ').strip()
 
         userInput = userInput.split()
         if len(userInput) != 2:
@@ -269,6 +269,8 @@ def playMove(board, coordinate):
 
         outcome = 'miss'
         print('Miss!')
+        play_wav.Sound().playFile('miss.wav')
+        os.system('say Miss')
         board[row][column] = 'O'
 
     else:
@@ -290,8 +292,12 @@ def playMove(board, coordinate):
 
         if liveShip:
             print('Hit!')
+            play_wav.Sound().playFile('hit.wav')
+            os.system('say Hit')
         else:
             print('You sunk my %s' % cellValue)
+            play_wav.Sound().playFile('sunk.wav')
+            os.system('say Sunk ship')
 
     return outcome
 
@@ -340,8 +346,6 @@ def getDestroyMoves(lastMove, openMoves, currentDestroyMoveList):
 # SETUP INFO
 ############
 
-mySeed = getInt('Enter the seed: ')
-
 # Board dimensions
 width = getPosInt('Enter the width of the board: ')
 maxColIndex = width - 1
@@ -349,7 +353,7 @@ height = getPosInt('Enter the height of the board: ')
 maxRowIndex = height - 1
 
 # Import user ship placements
-filepath = input('Enter the name of the file containing your ship placements: ').strip()
+filepath = raw_input('Enter the name of the file containing your ship placements: ').strip()
 userShipPlacements = []
 with open(filepath) as userShipFile:
     for ship in userShipFile:
@@ -419,8 +423,6 @@ for ship in userShipPlacements:
 #############
 # SET UP GAME
 #############
-
-random.seed(mySeed)
 
 # Construct user board
 userBoard = createBoard(userShipCoordsDict, width, height)
@@ -527,5 +529,9 @@ displayUserBoard(userBoard)
 # Declare winner
 if winner == 'user':
     print('You win!')
+    play_wav.Sound().playFile('victory.wav')
+    os.system('say Victory is yours. I surrender my sword')
 else:
     print('The AI wins.')
+    play_wav.Sound().playFile('loss.wav')
+    os.system('say I win')
