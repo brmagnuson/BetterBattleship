@@ -261,7 +261,7 @@ def getUserMove(previousUserMoves, maximumColumnIndex, maximumRowIndex):
     return coordinate
 
 
-def playMove(board, coordinate):
+def playMove(board, coordinate, turn):
 
     row, column = coordinate
 
@@ -270,7 +270,10 @@ def playMove(board, coordinate):
         outcome = 'miss'
         print('Miss!')
         play_wav.Sound().playFile('miss.wav')
-        os.system('say Miss')
+        if turn == 0:
+            os.system('say You missed.')
+        else:
+            os.system('say I missed.')
         board[row][column] = 'O'
 
     else:
@@ -293,11 +296,20 @@ def playMove(board, coordinate):
         if liveShip:
             print('Hit!')
             play_wav.Sound().playFile('hit.wav')
-            os.system('say Hit')
+            if turn == 0:
+                os.system('say You hit me.')
+            else:
+                os.system('say I hit you.')
         else:
-            print('You sunk my %s' % cellValue)
+            if turn == 0:
+                print('You sunk my %s ship.' % cellValue)
+            else:
+                print('I sunk your %s ship.' % cellValue)
             play_wav.Sound().playFile('sunk.wav')
-            os.system('say Sunk ship')
+            if turn == 0:
+                os.system('say -v "Bubbles" "You sunk my %s ship."' % cellValue)
+            else:
+                os.system('say I sunk your %s ship.' % cellValue)
 
     return outcome
 
@@ -467,7 +479,7 @@ while winner is None:
         userMove = getUserMove(userMoves, maxColIndex, maxRowIndex)
 
         # Play the move & update AI's board, announcing success/failure and a sinking if this occurs
-        userOutcome = playMove(aiBoard, userMove)
+        userOutcome = playMove(aiBoard, userMove, turn)
 
         # Update move list
         userMoves.append(userMove)
@@ -507,7 +519,7 @@ while winner is None:
         # Play the move & update AI's board, announcing success/failure and a sinking if this occurs
         aiRow, aiColumn = aiMove
         print('The AI fires at location (%d, %d)' % (aiRow, aiColumn))
-        aiOutcome = playMove(userBoard, aiMove)
+        aiOutcome = playMove(userBoard, aiMove, turn)
 
         if aiOutcome == 'hit' or len(destroyMoves) > 0:
             huntMode = False
